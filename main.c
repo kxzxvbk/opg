@@ -2,69 +2,59 @@
 #include <stdlib.h>
 #include <string.h>
 
-const int CharacterNum=10;
+const int Num=10;
 
-char line[2550];
-char OLine[2550];
-int stack[2550]={0};
-char CharacterNumList[1001]={' ','+','*','i','(',')','#','N','F','T','E'};
-int top=0,lineLen=0;
-int prior[7][7];
+char line[2550],OLine[2550];
+int stack[2550]={0},pr[7][7],top=0,lineLen=0;
+char CharList[1001]={' ','+','*','i','(',')','#','N','F','T','E'};
 
-int charToint(char c)
+
+char intTochar(int i)
 {
-    for (int i=0;i<=CharacterNum;i++)
+    return CharList[i];
+}
+
+int Toint(char c)
+{
+    for (int i=0;i<=Num;i++)
     {
-        if (CharacterNumList[i]==c)
+        if (CharList[i]==c)
         {
             return i;
-        } 
+        }
     }
     return -1;
 }
 
-char intTochar(int i)
-{
-    return CharacterNumList[i];
-}
 
-void pushStack(int newStackNum)
+void push(int newStackNum)
 {
     stack[top]=newStackNum;
     top++;
 }
 
-int popStack()
+
+
+void setPr()
 {
-    top--;
-    return stack[top];
-}
-
-void setPrior()
-{
-    prior[1][1]=1;prior[1][2]=-1;prior[1][3]=-1;
-    prior[1][4]=-1;prior[1][5]=1;prior[1][6]=1;
-
-    prior[2][1]=1;prior[2][2]=1;prior[2][3]=-1;
-    prior[2][4]=-1;prior[2][5]=1;prior[2][6]=1;
-
-    prior[3][1]=1;prior[3][2]=1;prior[3][3]=2;
-    prior[3][4]=2;prior[3][5]=1;prior[3][6]=1;
-
-    prior[4][1]=-1;prior[4][2]=-1;prior[4][3]=-1;
-    prior[4][4]=-1;prior[4][5]=0;prior[4][6]=2;
-
-    prior[5][1]=1;prior[5][2]=1;prior[5][3]=2;
-    prior[5][4]=2;prior[5][5]=1;prior[5][6]=1;
-
-    prior[6][1]=-1;prior[6][2]=-1;prior[6][3]=-1;
-    prior[6][4]=-1;prior[6][5]=2;prior[6][6]=2;
+    pr[1][1]=1;pr[1][2]=-1;pr[1][3]=-1;
+    pr[1][4]=-1;pr[1][5]=1;pr[1][6]=1;
+    pr[2][1]=1;pr[2][2]=1;pr[2][3]=-1;
+    pr[2][4]=-1;pr[2][5]=1;pr[2][6]=1;
+    pr[3][1]=1;pr[3][2]=1;pr[3][3]=2;
+    pr[3][4]=2;pr[3][5]=1;pr[3][6]=1;
+    pr[4][1]=-1;pr[4][2]=-1;pr[4][3]=-1;
+    pr[4][4]=-1;pr[4][5]=0;pr[4][6]=2;
+    pr[5][1]=1;pr[5][2]=1;pr[5][3]=2;
+    pr[5][4]=2;pr[5][5]=1;pr[5][6]=1;
+    pr[6][1]=-1;pr[6][2]=-1;pr[6][3]=-1;
+    pr[6][4]=-1;pr[6][5]=2;pr[6][6]=2;
 }
 
 int cmp(int a,int b)
 {
     if (a>=0&&a<=6&&b>=0&&b<=6)
-        return prior[a][b];
+        return pr[a][b];
     else return 2;
 }
 
@@ -110,8 +100,6 @@ int main(int argc,char* argv[])
     FILE *fp = NULL;
     fp = fopen(argv[1], "r");
     fgets(OLine,2000,(FILE *)fp);
-    //printf(OLine);
-    //lineLen=strlen(line);
     lineLen=1;
     line[0]='#';
     for (int i=0;i<strlen(OLine);i++)
@@ -124,32 +112,21 @@ int main(int argc,char* argv[])
         line[lineLen]=OLine[i];
         lineLen++;
     }
-    //在首尾分别添加# 
     line[0]='#';
     line[lineLen]='#';
     line[lineLen+1]='\n';
-    //printf(line);
-    //printf("%d\n",lineLen);
-    /*for (int i=0;i<10;i++)
-    {
-        printf("Character %d : %c;\n",i,CharacterNumList[i]);
-    }*/
-
-    setPrior();
-
-    pushStack(charToint(line[0]));
+    setPr();
+    push(Toint(line[0]));
     for (int i=1;i<=lineLen;)
     {
-        //printf("now: %c\n",line[i]);
         if (top==2&&stack[1]==7&&line[i]=='#') break;
-        if (cmp(topTerminal(),charToint(line[i]))==2)
+        if (cmp(topTerminal(),Toint(line[i]))==2)
         {
             printf("E\n");
             return 0;
         }
-        if (cmp(topTerminal(),charToint(line[i]))==1)
+        if (cmp(topTerminal(),Toint(line[i]))==1)
         {
-            //规约
             int Status=specification();
             if (Status==1)
             {
@@ -163,18 +140,15 @@ int main(int argc,char* argv[])
                     return 0;
                 }
             }
-            
+
         }
         else
         {
-            //移入
-            pushStack(charToint(line[i]));
+            push(Toint(line[i]));
             if (i==lineLen) break;
             printf("I%c\n",line[i]);
             i++;
         }
-        //printf("top=%d\n",top);
-        //printf("%d %d %d\n",stack[0],stack[1],stack[2]);
     }
 
     fclose(fp);
